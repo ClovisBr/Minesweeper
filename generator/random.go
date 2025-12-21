@@ -9,8 +9,8 @@ import (
 )
 
 func GenerateMines(cfg config.Config) (engine.CellIndices, error) {
-	total := cfg.Rows * cfg.Cols
-	mines := cfg.Mines
+	total := cfg.Grid.Rows * cfg.Grid.Cols
+	mines := cfg.Grid.Mines
 
 	if mines < 0 {
 		return nil, errors.New("mines cannot be negative")
@@ -19,7 +19,7 @@ func GenerateMines(cfg config.Config) (engine.CellIndices, error) {
 		return nil, errors.New("more mines than cells")
 	}
 
-	rng := rand.New(rand.NewSource(cfg.Seed))
+	rng := rand.New(rand.NewSource(cfg.Grid.Seed))
 
 	indices := make(engine.CellIndices, total)
 	for i := range indices {

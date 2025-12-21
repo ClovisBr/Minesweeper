@@ -1,10 +1,13 @@
 package engine
 
-import "errors"
-import "fmt"
-import "github.com/ClovisBr/Minesweeper/config"
+import (
+	"errors"
+	"fmt"
 
-type CellIndices []int
+	"github.com/ClovisBr/Minesweeper/config"
+)
+
+type CellIndex int
 
 type Grid struct {
 	Rows  int
@@ -14,24 +17,31 @@ type Grid struct {
 
 func NewGrid(cfg config.Config) *Grid {
 	return &Grid{
-		Rows:  cfg.Rows,
-		Cols:  cfg.Cols,
-		Cells: make([]Cell, cfg.Rows*cfg.Cols),
+		Rows:  cfg.Grid.Rows,
+		Cols:  cfg.Grid.Cols,
+		Cells: make([]Cell, cfg.Grid.Rows*cfg.Grid.Cols),
 	}
 }
 
-func (g *Grid) index(r, c int) int {
-	return r*g.Cols + c
+func (g *Grid) index(r, c int) CellIndex {
+	return CellIndex(r*g.Cols + c)
 }
 
 func (g *Grid) Cell(r, c int) *Cell {
 	return &g.Cells[g.index(r, c)]
 }
 
-func (g *Grid) PlaceMines(indices CellIndices) error {
-	total := len(g.Cells)
+func (g *Grid) CellAt(idx CellIndex) *Cell {
+	if idx < 0 || int(idx) >= len(g.Cells) {
+		return nil
+	}
+	return &g.Cells[idx]
+}
 
-	if len(indices) > total {
+func (g *Grid) PlaceMines(indices []CellIndex) error {
+	total := CellIndex(len(g.Cells))
+
+	if CellIndex(len(indices)) > total {
 		return errors.New("more mines than cells")
 	}
 

@@ -9,6 +9,11 @@ type Renderer struct {
 	screen tcell.Screen
 }
 
+const (
+	CellW = 3
+	CellH = 1
+)
+
 func New() (*Renderer, error) {
 	s, err := tcell.NewScreen()
 	if err != nil {
@@ -32,26 +37,45 @@ func (r *Renderer) DrawGrid(g *engine.Grid, cursorR, cursorC int) {
 		for c0 := 0; c0 < g.Cols; c0++ {
 			cell := g.Cell(r0, c0)
 
-			ch := '.'
+			ch := ' '
 			style := StyleHidden
 
-			if cell.Has(engine.FlagReveal) {
-				style = StyleRevealed
-				if cell.Has(engine.FlagMine) {
-					ch = '*'
-					style = StyleMine
-				} else if cell.GetNeighborCount() > 0 {
-					ch = rune('0' + cell.GetNeighborCount())
+			switch {
+			case cell.Has(engine.FlagFlag):
+				ch = 'F'
+				style = StyleFlag
+
+			case !cell.Has(engine.FlagReveal):
+				ch = '~'
+				style = StyleHidden
+
+			case cell.Has(engine.FlagMine):
+				ch = '*'
+				style = StyleMine
+
+			default:
+				n := cell.GetNeighborCount()
+				if n > 0 {
+					ch = rune('0' + n)
+					style = numberStyle(n)
 				} else {
 					ch = ' '
+					style = StyleRevealed
 				}
 			}
 
+			// curseur logique → sur toute la cellule 3×1
 			if r0 == cursorR && c0 == cursorC {
 				style = style.Reverse(true)
 			}
 
-			r.screen.SetContent(c0, r0, ch, nil, style)
+			x := c0 * CellW
+			y := r0
+
+			// padding + contenu centré
+			r.screen.SetContent(x, y, ' ', nil, style)
+			r.screen.SetContent(x+1, y, ch, nil, style)
+			r.screen.SetContent(x+2, y, ' ', nil, style)
 		}
 	}
 
