@@ -7,101 +7,88 @@ import (
 )
 
 type Controller struct {
-	layout *view.Layout
-
+	game   *engine.Game
+	view   *view.View
 	cursor *Cursor
-
-	keyboardCursor engine.CellIndex
-	mouseCursor    *engine.CellIndex
-
-	lastCursor engine.CellIndex
+	timer  *Timer
 }
 
-func NewController(rows, cols int) *Controller {
-	cur := NewCursor(rows, cols)
-	idx := cur.Index()
-
+func NewController(
+	game *engine.Game,
+	view *view.View,
+	rows, cols int,
+) *Controller {
 	return &Controller{
-		layout:         view.NewLayout(rows, cols),
-		cursor:         cur,
-		keyboardCursor: idx,
-		lastCursor:     -1,
+		game:   game,
+		view:   view,
+		cursor: NewCursor(rows, cols),
+		timer:  NewTimer(),
 	}
 }
 
-func (c *Controller) currentCursor() engine.CellIndex {
-	if c.mouseCursor != nil {
-		return *c.mouseCursor
+func (c *Controller) HandleAction(i Intent) *event.GameplayUpdate {
+	action := c.ApplyIntent(i)
+	if action == nil {
+		return nil
 	}
-	return c.keyboardCursor
-}
 
-func (c *Controller) SyncCursor() bool {
-	cur := c.currentCursor()
-	if cur == c.lastCursor {
-		return false
+	switch a := action.(type) {
+
+	// ---------- UI ----------
+	case event.UIAction:
+		c.view.ApplyUI(a)
+		return nil
+
+	// ---------- Gameplay ----------
+	case event.GameplayAction:
+		engineUpdate := c.game.Apply(toEngineAction(a))
+		eventUpdate := toEventUpdate(engineUpdate, a.Time)
+		c.view.ApplyUpdate(eventUpdate)
+		return &eventUpdate
 	}
-	c.lastCursor = cur
-	return true
+
+	return nil
 }
 
 func (c *Controller) ApplyIntent(i Intent) event.Action {
+	now := c.timer.Now()
+
 	switch i {
 
-	// ---------- UI ----------
+	// ---------- UI (clavier) ----------
 	case IntentUp:
 		if c.cursor.MoveUp() {
-			c.keyboardCursor = c.cursor.Index()
-			c.mouseCursor = nil
-
-			return event.UIAction{
-				Kind: event.UIMoveCursorUp,
-			}
+			return event.UIAction{Time: now, Kind: event.UIMoveCursorUp}
 		}
 
 	case IntentDown:
 		if c.cursor.MoveDown() {
-			c.keyboardCursor = c.cursor.Index()
-			c.mouseCursor = nil
-
-			return event.UIAction{
-				Kind: event.UIMoveCursorDown,
-			}
+			return event.UIAction{Time: now, Kind: event.UIMoveCursorDown}
 		}
 
 	case IntentLeft:
 		if c.cursor.MoveLeft() {
-			c.keyboardCursor = c.cursor.Index()
-			c.mouseCursor = nil
-
-			return event.UIAction{
-				Kind: event.UIMoveCursorLeft,
-			}
+			return event.UIAction{Time: now, Kind: event.UIMoveCursorLeft}
 		}
 
 	case IntentRight:
 		if c.cursor.MoveRight() {
-			c.keyboardCursor = c.cursor.Index()
-			c.mouseCursor = nil
-
-			return event.UIAction{
-				Kind: event.UIMoveCursorRight,
-			}
+			return event.UIAction{Time: now, Kind: event.UIMoveCursorRight}
 		}
 
 	// ---------- Gameplay ----------
 	case IntentReveal:
 		return event.GameplayAction{
-			Time:  now(),
+			Time:  now,
 			Kind:  event.ActionReveal,
-			Index: c.currentCursor(),
+			Index: int(c.view.Cursor),
 		}
 
 	case IntentToggleFlag:
 		return event.GameplayAction{
-			Time:  now(),
+			Time:  now,
 			Kind:  event.ActionToggleFlag,
-			Index: c.currentCursor(),
+			Index: int(c.view.Cursor),
 		}
 	}
 
@@ -109,9 +96,13 @@ func (c *Controller) ApplyIntent(i Intent) event.Action {
 }
 
 func (c *Controller) HandleMouseMove(x, y int) {
-	if idx, ok := c.layout.ScreenToCell(x, y); ok {
-		c.mouseCursor = &idx
-	} else {
-		c.mouseCursor = nil
-	}
+	now := c.timer.Now()
+
+	c.view.ApplyUI(event.UIAction{
+		Time: now,
+		Kind: event.UIHover,
+		X:    x,
+		Y:    y,
+	})
 }
+

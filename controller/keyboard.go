@@ -34,3 +34,39 @@ func (k *KeyboardMapper) Map(ev *tcell.EventKey) Intent {
 
 	return IntentNone
 }
+
+func MapKey(ev *tcell.EventKey) Intent {
+	if ev.Key() == tcell.KeyRune {
+		switch ev.Rune() {
+		case 'k':
+			return IntentUp
+		case 'j':
+			return IntentDown
+		case 'h':
+			return IntentLeft
+		case 'l':
+			return IntentRight
+		case ' ':
+			return IntentReveal
+		case 'f':
+			return IntentToggleFlag
+		case 'q':
+			return IntentQuit
+		}
+	}
+
+	switch ev.Key() {
+	case tcell.KeyUp:
+		return IntentUp
+	case tcell.KeyDown:
+		return IntentDown
+	case tcell.KeyLeft:
+		return IntentLeft
+	case tcell.KeyRight:
+		return IntentRight
+	case tcell.KeyEnter:
+		return IntentReveal
+	}
+
+	return IntentNone
+}

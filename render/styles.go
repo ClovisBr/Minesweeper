@@ -1,24 +1,47 @@
 package render
 
-import "github.com/gdamore/tcell/v2"
+import (
+	"github.com/ClovisBr/Minesweeper/engine"
+	"github.com/gdamore/tcell/v2"
+)
 
 var (
-	StyleHidden = tcell.StyleDefault.
+	styleHidden = tcell.StyleDefault.
 			Foreground(tcell.ColorGray).
 			Background(tcell.ColorBlack)
 
-	StyleRevealed = tcell.StyleDefault.
+	styleRevealed = tcell.StyleDefault.
 			Foreground(tcell.ColorWhite).
 			Background(tcell.ColorBlack)
 
-	StyleMine = tcell.StyleDefault.
+	styleMine = tcell.StyleDefault.
 			Foreground(tcell.ColorRed).
 			Background(tcell.ColorBlack)
 
-	StyleFlag = tcell.StyleDefault.
+	styleFlag = tcell.StyleDefault.
 			Foreground(tcell.ColorRed).
 			Background(tcell.ColorBlack)
 )
+
+func cellStyle(cell engine.Cell) (rune, tcell.Style) {
+	switch {
+	case cell.Has(engine.FlagFlag):
+		return 'F', styleFlag
+
+	case !cell.Has(engine.FlagReveal):
+		return '~', styleHidden
+
+	case cell.Has(engine.FlagMine):
+		return '*', styleMine
+
+	default:
+		n := cell.GetNeighborCount()
+		if n > 0 {
+			return rune('0' + n), numberStyle(n)
+		}
+		return ' ', styleRevealed
+	}
+}
 
 func numberStyle(n uint8) tcell.Style {
 	switch n {
@@ -39,6 +62,6 @@ func numberStyle(n uint8) tcell.Style {
 	case 8:
 		return tcell.StyleDefault.Foreground(tcell.ColorGray)
 	default:
-		return StyleRevealed
+		return styleRevealed
 	}
 }

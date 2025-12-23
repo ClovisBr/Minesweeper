@@ -40,6 +40,6 @@ func (l *Layout) ScreenToCell(x, y int) (engine.CellIndex, bool) {
 }
 
 func applyCellDiff(cell *engine.Cell, d event.CellChange) {
-	*cell &^= d.Mask          // clear bits
-	*cell |= d.Value & d.Mask // set new bits
+	*cell &^= engine.Cell(d.Mask)
+	*cell |= engine.Cell(d.Value) & engine.Cell(d.Mask)
 }

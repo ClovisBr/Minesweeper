@@ -8,25 +8,22 @@ import (
 	"github.com/ClovisBr/Minesweeper/engine"
 )
 
-func GenerateMines(cfg config.Config) (engine.CellIndices, error) {
+func GenerateMines(cfg config.Config) ([]engine.CellIndex, error) {
 	total := cfg.Grid.Rows * cfg.Grid.Cols
 	mines := cfg.Grid.Mines
 
-	if mines < 0 {
-		return nil, errors.New("mines cannot be negative")
-	}
 	if mines > total {
 		return nil, errors.New("more mines than cells")
 	}
 
 	rng := rand.New(rand.NewSource(cfg.Grid.Seed))
 
-	indices := make(engine.CellIndices, total)
-	for i := range indices {
-		indices[i] = i
+	indices := make([]engine.CellIndex, total)
+	for i := 0; i < total; i++ {
+		indices[i] = engine.CellIndex(i)
 	}
 
-	// Fisher–Yates partiel : seulement mines itérations
+	// Fisher–Yates partiel : seulement `mines` itérations
 	for i := 0; i < mines; i++ {
 		j := i + rng.Intn(total-i)
 		indices[i], indices[j] = indices[j], indices[i]

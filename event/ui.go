@@ -13,13 +13,15 @@ const (
 )
 
 type UIAction struct {
-	Time int32
+	Time Time
 	Kind UIActionKind
 
 	// optionnels selon le Kind
 	X int // souris écran
 	Y int
 }
+
+func (UIAction) isAction() {}
 
 type Viewport struct {
 	Row0 int
@@ -29,7 +31,7 @@ type Viewport struct {
 }
 
 type UIState struct {
-	Time int32
+	Time Time
 
 	Cursor   int
 	Hover    *int
