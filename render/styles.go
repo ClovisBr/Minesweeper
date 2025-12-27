@@ -25,21 +25,26 @@ var (
 
 func cellStyle(cell engine.Cell) (rune, tcell.Style) {
 	switch {
-	case cell.Has(engine.FlagFlag):
-		return 'F', styleFlag
 
-	case !cell.Has(engine.FlagReveal):
-		return '~', styleHidden
-
-	case cell.Has(engine.FlagMine):
+	// Révélé + mine
+	case cell.Has(engine.FlagReveal) && cell.Has(engine.FlagMine):
 		return '*', styleMine
 
-	default:
+	// Révélé (chiffre ou vide)
+	case cell.Has(engine.FlagReveal):
 		n := cell.GetNeighborCount()
 		if n > 0 {
 			return rune('0' + n), numberStyle(n)
 		}
 		return ' ', styleRevealed
+
+	// Flag UNIQUEMENT si NON révélé
+	case cell.Has(engine.FlagFlag):
+		return 'F', styleFlag
+
+	// Caché
+	default:
+		return '~', styleHidden
 	}
 }
 

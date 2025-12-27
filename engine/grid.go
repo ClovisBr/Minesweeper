@@ -60,6 +60,39 @@ func (g *Grid) PlaceMines(indices []CellIndex) error {
 	return nil
 }
 
+// Neighbors appelle fn pour chaque cellule voisine valide (8 directions).
+// Aucune allocation, aucune dépendance UI.
+// Primitive moteur.
+func (g *Grid) Neighbors(idx CellIndex, fn func(CellIndex)) {
+	r := int(idx) / g.Cols
+	c := int(idx) % g.Cols
+
+	for dr := -1; dr <= 1; dr++ {
+		for dc := -1; dc <= 1; dc++ {
+			if dr == 0 && dc == 0 {
+				continue
+			}
+
+			nr, nc := r+dr, c+dc
+			if nr < 0 || nr >= g.Rows || nc < 0 || nc >= g.Cols {
+				continue
+			}
+
+			fn(CellIndex(nr*g.Cols + nc))
+		}
+	}
+}
+
+func CountFlagsAround(g *Grid, idx CellIndex) int {
+	count := 0
+	g.Neighbors(idx, func(n CellIndex) {
+		if c := g.CellAt(n); c != nil && c.Has(FlagFlag) {
+			count++
+		}
+	})
+	return count
+}
+
 func (g *Grid) PrintCells(binary ...bool) {
 	showBinary := len(binary) > 0 && binary[0]
 

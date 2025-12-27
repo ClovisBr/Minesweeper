@@ -6,9 +6,19 @@ import (
 )
 
 func toEngineAction(a event.GameplayAction) engine.Action {
-	return engine.Action{
-		Kind:  engine.ActionKind(a.Kind),
-		Index: engine.CellIndex(a.Index),
+	switch a.Kind {
+	case event.ActionReveal:
+		return engine.Action{
+			Kind:  engine.ActionReveal,
+			Index: engine.CellIndex(a.Index),
+		}
+	case event.ActionToggleFlag:
+		return engine.Action{
+			Kind:  engine.ActionToggleFlag,
+			Index: engine.CellIndex(a.Index),
+		}
+	default:
+		panic("unknown GameplayActionKind")
 	}
 }
 

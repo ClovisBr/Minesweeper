@@ -55,9 +55,9 @@ func NewMap(c Controls) *Map {
 func Default() Config {
 	return Config{
 		Grid: Grid{
-			Rows:  10,
-			Cols:  10,
-			Mines: 10,
+			Rows:  20,
+			Cols:  20,
+			Mines: 50,
 			Seed:  time.Now().UnixNano(),
 		},
 		Controls: Controls{
